@@ -14,7 +14,27 @@ const TaskSchema = {
   primaryKey: "_id",
 };
 
+
+// MQTT client
+const mqtt = require('mqtt')
+const client  = mqtt.connect('mqtt://mqtt:1883')
+
 async function run() {
+
+  client.on('connect', function () {
+    console.log("connect")
+    client.subscribe('presence', function (err) {
+        if (!err) {
+        client.publish('presence', 'Hello mqtt')
+        }
+    })
+  })
+
+  client.on('message', function (topic, message) {
+    // message is Buffer
+    console.log(message.toString())
+  })
+
   const credentials = Realm.Credentials.anonymous();
   await app.logIn(credentials);
   console.log(`Logged in anonymously with user id: ${app.currentUser.id}`);
@@ -71,6 +91,7 @@ async function run() {
     tasks.removeListener(taskListener);
     realm.close();
     app.currentUser.logOut();
+    client.end()
     console.log("Cleaned up and shutting down")
     process.exit(0)
   })

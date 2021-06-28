@@ -1,9 +1,11 @@
 version: "3.9"
 services:
   realm:
-    build: realm/.
+    build: ./realm
     environment:
         - REALM_APPID
+    depends_on:
+        - mqtt
   mqtt:
     image: "eclipse-mosquitto"
     volumes:

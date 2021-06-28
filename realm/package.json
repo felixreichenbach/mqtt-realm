@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "realm": "^10.4.2",
+    "mqtt": "^4.2.8",
+    "realm": "^10.5.0",
     "source-map-resolve": "^0.5.3"
   }
 }
