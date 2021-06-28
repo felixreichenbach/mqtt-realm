@@ -7,5 +7,5 @@ Update .env file with your Realm App ID
 
 Remove cached containers before rebuilding!
 
-docker-compose up --build
+`docker-compose up --build`
 
