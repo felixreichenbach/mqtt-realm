@@ -1,8 +1,10 @@
 const Realm = require("realm");
 const BSON = require("bson");
+const mqtt = require('mqtt')
 
 // Update this with your App ID
 const app = new Realm.App({ id: process.env.REALM_APPID });
+
 const TaskSchema = {
   name: "Task",
   properties: {
@@ -15,25 +17,7 @@ const TaskSchema = {
 };
 
 
-// MQTT client
-const mqtt = require('mqtt')
-const client  = mqtt.connect('mqtt://mqtt:1883')
-
 async function run() {
-
-  client.on('connect', function () {
-    console.log("connect")
-    client.subscribe('presence', function (err) {
-        if (!err) {
-        client.publish('presence', 'Hello mqtt')
-        }
-    })
-  })
-
-  client.on('message', function (topic, message) {
-    // message is Buffer
-    console.log(message.toString())
-  })
 
   const credentials = Realm.Credentials.anonymous();
   await app.logIn(credentials);
@@ -45,45 +29,36 @@ async function run() {
       user: app.currentUser,
       partitionValue: "quickstart",
     },
-  });
-
-  // Get all Tasks in the realm
-  const tasks = realm.objects("Task");
-
-  // Add a listener that fires whenever one or more Tasks are inserted, modified, or deleted.
-  tasks.addListener(taskListener);
-
-  // Add a couple of Tasks in a single, atomic transaction
-  // Realm automatically sets the _partition property based on the partitionValue used to open the realm
-  realm.write(() => {
-    console.log("write")
-    const task1 = realm.create("Task", {
-      _id: new BSON.ObjectID(),
-      name: "go grocery shopping",
-      status: "Open",
+  }).then((realm)=>{
+    client = mqtt.connect('mqtt://mqtt:1883')
+    client.on('connect', function () {
+      console.log("connect")
+      client.subscribe('presence', function (err) {
+        if (!err) {
+          client.publish('presence', 'Hello mqtt')
+        }
+      })
+    })
+    
+    client.on('message', function (topic, message) {
+      // message is Buffer
+      console.log(message.toString())
+    
+      realm.write(() => {
+        console.log("write")
+        const task1 = realm.create("Task", {
+          _id: new BSON.ObjectID(),
+          name: message.toString(),
+          status: "Open",
+        });
+      });
     });
 
-    const task2 = realm.create("Task", {
-      _id: new BSON.ObjectID(),
-      name: "go exercise",
-      status: "Open",
-    });
-    console.log(`created two tasks: ${task1.name} & ${task2.name}`);
-  });
+    // Get all Tasks in the realm
+    const tasks = realm.objects("Task");
 
-  // Find a specific Task
-  let task = tasks.filtered("status = 'Open' LIMIT(1)")[0];
-  console.log("task", JSON.stringify(task, null, 2));
-
-  // Update the Task
-  realm.write(() => {
-    task.status = "InProgress";
-  });
-
-  // Delete the Task
-  realm.write(() => {
-    //realm.delete(task);
-    task = null;
+    // Add a listener that fires whenever one or more Tasks are inserted, modified, or deleted.
+    tasks.addListener(taskListener);
   });
 
   // Clean up and shutdown application
@@ -95,6 +70,7 @@ async function run() {
     console.log("Cleaned up and shutting down")
     process.exit(0)
   })
+
 }
 run().catch(err => {
   console.error(err)
@@ -121,8 +97,7 @@ function taskListener(tasks, changes) {
     let modifiedTask = tasks[index];
     console.log(`modified task: ${JSON.stringify(modifiedTask, null, 2)}`);
     // ...
+    client.publish('presence', 'Task Modified by MQTT')
+
   });
 }
-
-
-
