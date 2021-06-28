@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  realm:
+    build: realm/.
+    environment:
+        - REALM_APPID
+  mqtt:
+    image: "eclipse-mosquitto"
+    volumes:
+        - ./mqtt/config:/mosquitto/config/
