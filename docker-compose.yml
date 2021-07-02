@@ -6,11 +6,9 @@ services:
         - REALM_APPID
     depends_on:
         - mqtt      
-  sensors:
-    build: ./sensors
-    depends_on: 
-        - mqtt
   mqtt:
     image: "eclipse-mosquitto"
     volumes:
         - ./mqtt/config:/mosquitto/config/
+    ports:
+        - "1883:1883"

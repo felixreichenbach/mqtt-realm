@@ -8,6 +8,6 @@ sense = SenseHat()
 sense.clear()
 
 while True:
-    temp = sense.get_temperature()
-    publish.single("presence", "Temperature: "+temp, hostname="mqtt")
+    temp = str(sense.get_temperature())
+    publish.single("presence", "Temperature: "+temp, hostname="localhost")
     time.sleep(10)
