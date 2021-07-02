@@ -1,10 +1,14 @@
-version: "3.9"
+version: "2.4"
 services:
   realm:
     build: ./realm
     environment:
         - REALM_APPID
     depends_on:
+        - mqtt      
+  sensors:
+    build: ./sensors
+    depends_on: 
         - mqtt
   mqtt:
     image: "eclipse-mosquitto"
